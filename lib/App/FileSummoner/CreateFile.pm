@@ -46,7 +46,7 @@ sub summonFile {
         INTERPOLATE  => 1,
     );
 
-    my $skeleton = chooseSkeleton( $fileName )
+    my $skeleton = chooseSkeleton( File::Spec->rel2abs( $fileName ) )
       || die "Couldn't find suitable skeleton for " . $fileName;
     say "Skeleton: " . $skeleton;
     $template->process( $skeleton, {}, $fileName )
