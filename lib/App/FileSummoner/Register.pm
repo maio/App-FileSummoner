@@ -64,6 +64,15 @@ sub chooseSkeleton {
     return undef;
 }
 
+=head2 unregisterAll
+
+=cut
+
+sub unregisterAll {
+    @rules = ();
+    %skeleton = ();
+}
+
 =head2 ruleMatches
 
 Check if a filename matches a given rule.
@@ -73,7 +82,18 @@ Check if a filename matches a given rule.
 sub ruleMatches {
     my ( $rule, $fileName ) = @_;
 
+    return rulesMatches( $rule, $fileName ) if ref $rule eq 'ARRAY';
+    return &$rule($fileName) if ref $rule eq 'CODE';
     return $fileName =~ $rule;
+}
+
+sub rulesMatches {
+    my ( $rulesRef, $fileName ) = @_;
+
+    foreach my $rule (@{ $rulesRef }) {
+        ruleMatches($rule, $fileName) || return 0;
+    }
+    return 1;
 }
 
 1;

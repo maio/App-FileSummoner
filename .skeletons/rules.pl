@@ -1,3 +1,3 @@
-registerSkeleton(qr/\.pm$/, 'perl/module/basic.pm');
-registerSkeleton(qr/lib\/.*\.t$/, 'perl/test/test-class.t');
-registerSkeleton(qr/\.t$/, 'perl/test/basic.t');
+registerSkeleton(HasExt('pm'), 'perl/module/basic.pm');
+registerSkeleton([BelowDirectory('lib'), HasExt('t')], 'perl/test/test-class.t');
+registerSkeleton(HasExt('t'), 'perl/test/basic.t');

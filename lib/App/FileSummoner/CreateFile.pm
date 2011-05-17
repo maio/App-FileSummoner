@@ -13,6 +13,7 @@ use File::Spec;
 
 use App::FileSummoner::SkeletonDirsFinder;
 use App::FileSummoner::Register qw(chooseSkeleton registerSkeleton);
+use App::FileSummoner::Register::Rules;
 
 =head1 NAME
 
