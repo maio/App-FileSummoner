@@ -1,13 +1,10 @@
 package App::FileSummoner::CreateFile;
-# TODO: rename to App::FileSummoner::Summoner
 
 use 5.006;
 use strict;
 use warnings;
 
 use Moose;
-use feature qw(say);
-use File::Basename 'dirname';
 use Template;
 use File::Spec;
 
@@ -34,6 +31,26 @@ Create file using best possible skeleton.
 
 sub summonFile {
     my ($self, $fileName) = @_;
+    return $self->summonFileTo($fileName, $fileName);
+}
+
+=head2 summonFileToStdout
+
+Print best possible skeleton for a given file to STDOUT.
+
+=cut
+
+sub summonFileToStdout {
+    my ($self, $fileName) = @_;
+
+    my $buffer;
+    $self->summonFileTo($fileName, \$buffer);
+    print $buffer;
+}
+
+# TODO: refactor this beast
+sub summonFileTo {
+    my ($self, $fileName, $target) = @_;
 
     my @skeletonDirs =
       App::FileSummoner::SkeletonDirsFinder->new->findForFile( $fileName );
@@ -48,8 +65,8 @@ sub summonFile {
 
     my $skeleton = chooseSkeleton( File::Spec->rel2abs( $fileName ) )
       || die "Couldn't find suitable skeleton for " . $fileName;
-    say "Skeleton: " . $skeleton;
-    $template->process( $skeleton, {}, $fileName )
+    print STDERR "Skeleton: " . $skeleton . "\n";
+    $template->process( $skeleton, {}, $target )
       || die $template->error . "\n";
 }
 
@@ -79,8 +96,6 @@ Marian Schubert, C<< <marian.schubert at gmail.com> >>
 Please report any bugs or feature requests to C<bug-file-skeleton at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-Skeleton>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
 
 
 =head1 SUPPORT
