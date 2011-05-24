@@ -1,3 +1,9 @@
+test:
+	@PERL5LIB=${PERL5LIB}:lib prove -r .
+
+release:
+	@dzil release
+
 clean:
 	@dzil clean
 

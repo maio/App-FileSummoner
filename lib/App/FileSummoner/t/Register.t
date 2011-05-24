@@ -1,58 +1,55 @@
-package App::FileSummoner::Register::Test;
+use Test::Spec;
+use Modern::Perl;
 
-use strict;
-use warnings;
-
-use base 'Test::Class';
-use Test::More;
 use App::FileSummoner::Register qw(chooseSkeleton registerSkeleton);
 
-sub setup : Test(teardown) {
-    App::FileSummoner::Register::unregisterAll();
-}
+describe Register => sub {
+    before each => sub {
+        App::FileSummoner::Register::unregisterAll();
+    };
 
-sub testChoseCorrectSkeleton : Tests {
-    registerSkeleton(qr/\/t\/.+\.php$/ => 'test.php');
-    registerSkeleton(qr/\.pm$/ => 'file.pm');
-    registerSkeleton(qr/\.t$/ => 'file.t');
-    registerSkeleton(qr/\.php$/ => 'file.php');
+    it "doesn't find any skeleton if none is registered" => sub {
+        is(chooseSkeleton('/path/file.pm'), undef);
+    };
 
-    is(chooseSkeleton('/path/file.php'), 'file.php');
-    is(chooseSkeleton('/path/t/file.php'), 'test.php');
-    is(chooseSkeleton('/path/file.pm'), 'file.pm');
-    is(chooseSkeleton('/path/t/file.t'), 'file.t');
-    is(chooseSkeleton('/path/unknown.txt'), undef);
-}
+    it "finds matching skeleton if there is one registered" => sub {
+        registerSkeleton('file.pm', 'skeleton.pm');
+        is(chooseSkeleton('file.pm'), 'skeleton.pm');
+    };
 
-sub testChoseCorrectSkeletonUsingMultipleMatchersWorksForSingle : Tests {
-    registerSkeleton([qr/php/] => 'file.php');
-    registerSkeleton([qr/pm/] => 'file.pm');
+    it "doesn't find skeleton if fileName doesn't match registered skeleton" => sub {
+        registerSkeleton('file.pm', 'skeleton.pm');
+        is(chooseSkeleton('file.txt'), undef);
+    };
 
-    is(chooseSkeleton('/path/file.php'), 'file.php');
-    is(chooseSkeleton('/path/file.pm'), 'file.pm');
-}
+    it "returns first matching skeleton" => sub {
+        registerSkeleton('file.pm', 'skeleton.pm');
+        registerSkeleton('file.pm', 'skeleton2.pm');
+        is(chooseSkeleton('file.pm'), 'skeleton.pm');
+    };
 
-sub testChoseCorrectSkeletonUsingMultipleMatchersWorksForMultiple : Tests {
-    registerSkeleton([qr/models/, qr/pm/] => 'model-file.pm');
-    registerSkeleton([qr/pm/] => 'file.pm');
+    it "supports multiple rules" => sub {
+        registerSkeleton(['models', 'pm'] => 'model-file.pm');
+        registerSkeleton(['pm'] => 'file.pm');
 
-    is(chooseSkeleton('/path/models/file.pm'), 'model-file.pm');
-    is(chooseSkeleton('/path/file.pm'), 'file.pm');
-}
+        is(chooseSkeleton('/path/models/file.pm'), 'model-file.pm');
+        is(chooseSkeleton('/path/file.pm'), 'file.pm');
+    };
 
-sub testChoseCorrectSkeletonCodeRefRule : Tests {
-    registerSkeleton([FalseCodeRef()], 'file.php');
-    registerSkeleton([TrueCodeRef()], 'file.pm');
-    is(chooseSkeleton('/path/anything.ext'), 'file.pm');
-}
+    it "supports codeRef matchers" => sub {
+        registerSkeleton([FalseCodeRef()], 'file.php');
+        registerSkeleton([TrueCodeRef()], 'file.pm');
+        is(chooseSkeleton('/path/anything.ext'), 'file.pm');
+    };
 
-sub testChoseCorrectSkeletonPassFileNameToCodeRef : Tests {
-    registerSkeleton([RegExp('php')], 'file.php');
-    registerSkeleton([RegExp('pm')], 'file.pm');
+    it "passes fileName to codeRef matchers" => sub {
+        registerSkeleton([RegExp('php')], 'file.php');
+        registerSkeleton([RegExp('pm')], 'file.pm');
 
-    is(chooseSkeleton('/path/file.php'), 'file.php');
-    is(chooseSkeleton('/path/file.pm'), 'file.pm');
-}
+        is(chooseSkeleton('/path/file.php'), 'file.php');
+        is(chooseSkeleton('/path/file.pm'), 'file.pm');
+    };
+};
 
 sub RegExp {
     my ($re) = @_;
@@ -70,4 +67,4 @@ sub FalseCodeRef {
     return sub { 0; }
 }
 
-Test::Class->runtests;
+runtests unless caller;

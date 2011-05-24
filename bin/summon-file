@@ -25,6 +25,11 @@ Skeletons are located in F<.skeletons> directory.
 =head2 .skeletons/rules.pl
 
 This file defines mapping that will be used for decision which skeleton should
-be used for a given file. See L<App::FileSummoner::Register> for more info.
+be used for a given file.
+
+Example:
+
+  registerSkeleton([PathContains('/cgi-bin/'), HasExt('pl')], 'perl/cgi.pl');
+  registerSkeleton(HasExt('pl'), 'perl/script.pl');
 
 =cut
