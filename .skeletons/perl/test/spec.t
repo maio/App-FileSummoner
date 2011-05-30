@@ -1,7 +1,7 @@
 use Modern::Perl;
 use Test::Spec;
 
-describe Something => sub {
+describe [% name %] => sub {
     it "does something" => sub {
         pass;
     };

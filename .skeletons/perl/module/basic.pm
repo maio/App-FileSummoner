@@ -1,4 +1,4 @@
-package SomeModule;
+package [% name %];
 
 use strict;
 use warnings;

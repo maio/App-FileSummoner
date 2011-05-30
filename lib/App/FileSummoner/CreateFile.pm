@@ -1,12 +1,9 @@
 package App::FileSummoner::CreateFile;
 
-use 5.006;
-use strict;
-use warnings;
-
 use Moose;
 use Template;
 use File::Spec;
+use File::Basename qw/ fileparse /;
 
 use App::FileSummoner::SkeletonDirsFinder;
 use App::FileSummoner::Register qw(chooseSkeleton registerSkeleton);
@@ -52,6 +49,7 @@ sub summonFileToStdout {
 sub summonFileTo {
     my ($self, $fileName, $target) = @_;
 
+    $fileName = File::Spec->rel2abs( $fileName );
     my @skeletonDirs =
       App::FileSummoner::SkeletonDirsFinder->new->findForFile( $fileName );
 
@@ -60,14 +58,31 @@ sub summonFileTo {
     my $template = Template->new(
         INCLUDE_PATH => [@skeletonDirs],
         TRIM         => 1,
-        INTERPOLATE  => 1,
     );
 
-    my $skeleton = chooseSkeleton( File::Spec->rel2abs( $fileName ) )
+    my $skeleton = chooseSkeleton( $fileName )
       || die "Couldn't find suitable skeleton for " . $fileName;
     print STDERR "Skeleton: " . $skeleton . "\n";
-    $template->process( $skeleton, {}, $target )
-      || die $template->error . "\n";
+    $template->process( $skeleton, $self->templateVarsForFile($fileName),
+        $target )
+        || die $template->error . "\n";
+}
+
+=head2 templateVarsForFile
+
+Return template variables for given filename.
+
+  {
+      name => 'file name without extension',
+  }
+
+=cut
+
+sub templateVarsForFile {
+    my ($self, $fileName) = @_;
+
+    my ($name) = fileparse($fileName, qr/\.[^.]*/);
+    return { name => $name };
 }
 
 =head2 loadRules
